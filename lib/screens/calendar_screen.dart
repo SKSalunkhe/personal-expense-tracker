@@ -30,6 +30,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             lastDay: DateTime.utc(2030,12,31),
             focusedDay: selectedDay,
 
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+            ),
+
             eventLoader: (day) {
               return events[DateTime(day.year, day.month, day.day)] ?? [];
             },
@@ -43,6 +47,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 selectedDay = selected;
               });
             },
+          ),
+
+          const SizedBox(height: 10),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text(
+                  "Transactions",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Icon(Icons.receipt_long),
+              ],
+            ),
+          ),
+          Text(
+            "Transactions on ${selectedDay.day}/${selectedDay.month}/${selectedDay.year}",
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
 
           Expanded(
@@ -84,16 +111,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   return const Center(child: Text("No expenses today"));
                 }
 
-                return ListView(
-                  children: expenses.map((e){
-
-                    return ListTile(
-                      title: Text(e['title']),
-                      subtitle: Text(e['category']),
-                      trailing: Text("₹${e['amount']}"),
-                    );
-
-                  }).toList(),
+                return Card(
+                  margin: const EdgeInsets.all(12),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListView(
+                    children: expenses.map((e) {
+                      return ListTile(
+                        leading: const Text(
+                          "₹",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                          ),
+                        ),                        title: Text(e['title']),
+                        subtitle: Text(e['category']),
+                        trailing: Text("₹${e['amount']}"),
+                      );
+                    }).toList(),
+                  ),
                 );
               },
             ),

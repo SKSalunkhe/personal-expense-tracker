@@ -30,6 +30,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool budgetWarningShown = false;
   bool budgetExceededShown = false;
 
+  DateTime? lastNotificationTime;
+
+  bool canShowNotification() {
+    if (lastNotificationTime == null) {
+      lastNotificationTime = DateTime.now();
+      return true;
+    }
+
+    final difference = DateTime.now().difference(lastNotificationTime!);
+
+    if (difference.inMinutes >= 1) {
+      lastNotificationTime = DateTime.now();
+      return true;
+    }
+
+    return false;
+  }
+
   double calculateRemaining(double budget, double spent) {
     return budget - spent;
   }
@@ -81,7 +99,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        title: const Text(
+          "Dashboard",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: false,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),
@@ -258,12 +281,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               "₹${remainingBudget.toStringAsFixed(0)} remaining for $daysRemaining days.";
 
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(message),
-                                duration: const Duration(seconds: 4),
-                              ),
-                            );
+                            if (canShowNotification()) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(message),
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                            }
                           });
                         }
 
@@ -302,12 +327,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         }
 
                         return Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: AppColors.teal,
-                            borderRadius: BorderRadius.circular(16),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF1F7A78),
+                                Color(0xFF2C9C99),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,6 +432,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orangeAccent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 5,
+                          ),
                           onPressed: () async {
                             await exportService.exportExpensesToPDF(
                               allExpenses,
@@ -409,6 +458,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           icon: const Icon(Icons.download),
                           label: const Text("Export PDF"),
                         ),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text(
+                            "Recent Transactions",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Icon(Icons.history),
+                        ],
                       ),
                     ),
 
