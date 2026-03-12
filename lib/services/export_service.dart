@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:printing/printing.dart';
 
 class ExportService {
 
@@ -75,16 +76,9 @@ class ExportService {
       ),
     );
 
-    final directory = Directory('/storage/emulated/0/Download');
+    await Printing.layoutPdf(
+      onLayout: (format) async => pdf.save(),
+    );
 
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-    }
-
-    final file = File('${directory.path}/expense_report.pdf');
-
-    await file.writeAsBytes(await pdf.save());
-
-    print("PDF saved at: ${file.path}");
   }
 }
