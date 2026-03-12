@@ -15,7 +15,8 @@ class BudgetService {
     await _firestore.collection('budgets').doc(user.uid).set({
       'userId': user.uid,
       'monthlyBudget': budget,
-    });
+      'savings': 0
+    }, SetOptions(merge: true));
   }
 
   Stream<DocumentSnapshot> getBudget() {
@@ -26,5 +27,17 @@ class BudgetService {
     }
 
     return _firestore.collection('budgets').doc(user.uid).snapshots();
+  }
+
+  Future<void> updateSavings(double savings) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception("User not logged in");
+    }
+
+    await _firestore.collection('budgets').doc(user.uid).update({
+      'savings': savings
+    });
   }
 }

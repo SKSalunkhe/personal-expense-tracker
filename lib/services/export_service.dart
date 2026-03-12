@@ -1,31 +1,90 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:html' as html;
 
 class ExportService {
-  Future<void> exportExpenses(List<QueryDocumentSnapshot> expenses) async {
-    final buffer = StringBuffer();
 
-    buffer.writeln("Title,Amount,Category,Date");
+  Future<void> exportExpensesToPDF(
+      List<QueryDocumentSnapshot> expenses,
+      double monthlyBudget,
+      ) async {
 
-    for (var expense in expenses) {
-      final data = expense.data() as Map<String, dynamic>;
+    final pdf = pw.Document();
 
-      final title = "${data['title']}".replaceAll(',', ' ');
-      final amount = data['amount'];
-      final category = "${data['category']}".replaceAll(',', ' ');
-      final date = (data['date'] as Timestamp).toDate().toString();
+    double totalSpent = 0;
 
-      buffer.writeln("$title,$amount,$category,$date");
+    for (var e in expenses) {
+      totalSpent += (e['amount'] as num).toDouble();
     }
 
-    final bytes = buffer.toString().codeUnits;
-    final blob = html.Blob([bytes], 'text/csv');
-    final url = html.Url.createObjectUrlFromBlob(blob);
+    double savings = monthlyBudget - totalSpent;
 
-    html.AnchorElement(href: url)
-      ..setAttribute("download", "expenses.csv")
-      ..click();
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
 
-    html.Url.revokeObjectUrl(url);
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+
+              pw.Text(
+                "Expense Report",
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+
+              pw.SizedBox(height: 20),
+
+              pw.Text("Monthly Budget: ₹${monthlyBudget.toStringAsFixed(2)}"),
+              pw.Text("Total Spent: ₹${totalSpent.toStringAsFixed(2)}"),
+              pw.Text("Savings: ₹${savings.toStringAsFixed(2)}"),
+
+              pw.SizedBox(height: 20),
+
+              pw.Text(
+                "Transactions",
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+
+              pw.SizedBox(height: 10),
+
+              pw.Table.fromTextArray(
+                headers: ["Title", "Category", "Amount", "Date"],
+                data: expenses.map((e) {
+
+                  final date = (e['date'] as Timestamp).toDate();
+
+                  return [
+                    e['title'],
+                    e['category'],
+                    "₹${e['amount']}",
+                    "${date.day}/${date.month}/${date.year}",
+                  ];
+
+                }).toList(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final directory = Directory('/storage/emulated/0/Download');
+
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+
+    final file = File('${directory.path}/expense_report.pdf');
+
+    await file.writeAsBytes(await pdf.save());
+
+    print("PDF saved at: ${file.path}");
   }
 }

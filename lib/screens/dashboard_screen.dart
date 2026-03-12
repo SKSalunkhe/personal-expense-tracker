@@ -13,10 +13,12 @@ import '../services/export_service.dart';
 import '../widgets/monthly_bar_chart.dart';
 import '../widgets/weekly_line_chart.dart';
 import '../constants/colors.dart';
-import '../constants/colors.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../screens/calendar_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -27,6 +29,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool budgetWarningShown = false;
   bool budgetExceededShown = false;
+
+  double calculateRemaining(double budget, double spent) {
+    return budget - spent;
+  }
 
   final TextEditingController searchController = TextEditingController();
 
@@ -78,6 +84,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text("Dashboard"),
         actions: [
           IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CalendarScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -102,6 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: Column(
+
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
@@ -166,6 +184,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 final allExpenses = snapshot.data!.docs;
 
+                double totalSpent = 0;
+
+                for (var e in allExpenses) {
+                  totalSpent += (e['amount'] as num).toDouble();
+                }
+
+
                 final categoryFiltered = selectedFilter == 'All'
                     ? allExpenses
                     : allExpenses.where((expense) {
@@ -176,7 +201,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 final expenses = categoryFiltered.where((expense) {
                   final title = expense['title'].toString().toLowerCase();
-                  return title.contains(query);
+                  final expenseDate = (expense['date'] as Timestamp).toDate();
+
+                  bool matchesSearch = title.contains(query);
+
+                  return matchesSearch ;
                 }).toList();
 
                 double totalAmount = 0;
@@ -195,67 +224,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
                 }
 
-                Map<String, double> categoryTotals = {};
-
-                for (var expense in expenses) {
-                  final category = expense['category'];
-                  final amount = (expense['amount'] as num).toDouble();
-
-                  categoryTotals[category] =
-                      (categoryTotals[category] ?? 0) + amount;
-                }
-
-                Map<String, double> monthlyTotals = {
-                  'Jan': 0,
-                  'Feb': 0,
-                  'Mar': 0,
-                  'Apr': 0,
-                  'May': 0,
-                  'Jun': 0,
-                  'Jul': 0,
-                  'Aug': 0,
-                  'Sep': 0,
-                  'Oct': 0,
-                  'Nov': 0,
-                  'Dec': 0,
-                };
-
-                Map<String, double> weeklyTotals = {
-                  'Mon': 0,
-                  'Tue': 0,
-                  'Wed': 0,
-                  'Thu': 0,
-                  'Fri': 0,
-                  'Sat': 0,
-                  'Sun': 0,
-                };
-
-                const monthNames = [
-                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                ];
-
-                const weekNames = [
-                  'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-                ];
-
-                for (var expense in expenses) {
-                  final amount = (expense['amount'] as num).toDouble();
-                  final date = (expense['date'] as Timestamp).toDate();
-
-                  final monthName = monthNames[date.month - 1];
-                  monthlyTotals[monthName] = (monthlyTotals[monthName] ?? 0) + amount;
-
-                  final weekIndex = date.weekday - 1;
-                  final weekName = weekNames[weekIndex];
-                  weeklyTotals[weekName] = (weeklyTotals[weekName] ?? 0) + amount;
-                }
-
                 if (expenses.isEmpty) {
                   return const Center(
                     child: Text("No expenses found"),
                   );
                 }
+
+                double monthlyBudget = 0;
 
                 return ListView(
                   padding: const EdgeInsets.only(bottom: 20),
@@ -263,7 +238,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     StreamBuilder<DocumentSnapshot>(
                       stream: budgetService.getBudget(),
                       builder: (context, budgetSnapshot) {
-                        double monthlyBudget = 0;
 
                         if (budgetSnapshot.hasData && budgetSnapshot.data!.exists) {
                           monthlyBudget =
@@ -271,6 +245,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         }
 
                         double remainingBudget = monthlyBudget - monthlyAmount;
+                        final now = DateTime.now();
+
+                        final totalDays = DateTime(now.year, now.month + 1, 0).day;
+                        final daysPassed = now.day;
+                        final daysRemaining = totalDays - daysPassed;
+
+                        if (monthlyBudget > 0 && daysRemaining > 0) {
+
+                          final message =
+                              "You spent ₹${monthlyAmount.toStringAsFixed(0)} in $daysPassed days.\n"
+                              "₹${remainingBudget.toStringAsFixed(0)} remaining for $daysRemaining days.";
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(message),
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          });
+                        }
 
                         if (monthlyBudget > 0) {
                           final usedPercent = monthlyAmount / monthlyBudget;
@@ -311,7 +306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                              color: AppColors.teal,
+                            color: AppColors.teal,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -393,84 +388,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                     ),
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            exportService.exportExpenses(allExpenses);
+                          onPressed: () async {
+                            await exportService.exportExpensesToPDF(
+                              allExpenses,
+                              monthlyBudget,
+                            );
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("PDF exported successfully"),
+                              ),
+                            );
                           },
                           icon: const Icon(Icons.download),
-                          label: const Text("Export CSV"),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              const Text(
-                                "Category Wise Spending",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.teal,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ExpenseChart(categoryData: categoryTotals),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              const Text(
-                                "Monthly Spending Bar Graph",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.teal,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              MonthlyBarChart(monthlyData: monthlyTotals),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              const Text(
-                                "Weekly Spending Trend",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.teal,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              WeeklyLineChart(weeklyData: weeklyTotals),
-                            ],
-                          ),
+                          label: const Text("Export PDF"),
                         ),
                       ),
                     ),
@@ -482,7 +419,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          color:  AppColors.deepRose,
+                          color: AppColors.deepRose,
                           child: const Icon(
                             Icons.delete,
                             color: Colors.white,
