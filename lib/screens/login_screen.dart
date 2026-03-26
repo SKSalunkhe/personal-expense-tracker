@@ -18,14 +18,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   final AuthService authService = AuthService();
 
   Future<void> loginUser() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    // Check 1: empty fields
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
@@ -33,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Check 2: strong regex validation
     if (!AuthService.emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Enter a valid email (e.g. john@gmail.com)")),
@@ -44,11 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       User? user = await authService.loginUser(email, password);
 
-      // Check 3: is email verified?
       if (user != null && !user.emailVerified) {
-        // Not verified — sign them out & send to verify screen
         await FirebaseAuth.instance.signOut();
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -63,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // ✅ Verified — go to dashboard
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful")),
@@ -105,47 +98,137 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Personal Expense Tracker",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.teal,
+      backgroundColor: AppColors.darkBg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 60),
+
+              // ── Logo / Branding ──
+              Center(
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.purple.withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 30),
-            CustomTextField(
-              controller: emailController,
-              hintText: "Enter Email",
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: passwordController,
-              hintText: "Enter Password",
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              text: "Login",
-              onPressed: loginUser,
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: goToSignup,
-              child: const Text(
-                "Don't have an account? Signup",
-                style: TextStyle(color: AppColors.teal),
+              const SizedBox(height: 28),
+
+              // ── Title ──
+              const Center(
+                child: Text(
+                  "Welcome Back",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textWhite,
+                    letterSpacing: -0.5,
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              const Center(
+                child: Text(
+                  "Sign in to your expense tracker",
+                  style: TextStyle(fontSize: 14, color: AppColors.textGrey),
+                ),
+              ),
+              const SizedBox(height: 44),
+
+              // ── Email ──
+              const Text(
+                "Email",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: emailController,
+                hintText: "you@example.com",
+                prefixIcon: Icons.email_outlined,
+              ),
+              const SizedBox(height: 18),
+
+              // ── Password ──
+              const Text(
+                "Password",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: passwordController,
+                hintText: "Enter your password",
+                obscureText: true,
+                prefixIcon: Icons.lock_outline,
+              ),
+              const SizedBox(height: 32),
+
+              // ── Login Button ──
+              CustomButton(text: "Sign In", onPressed: loginUser),
+              const SizedBox(height: 20),
+
+              // ── Divider ──
+              Row(
+                children: [
+                  Expanded(child: Divider(color: AppColors.darkBorder)),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text("or", style: TextStyle(color: AppColors.textDimmed)),
+                  ),
+                  Expanded(child: Divider(color: AppColors.darkBorder)),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // ── Signup link ──
+              Center(
+                child: TextButton(
+                  onPressed: goToSignup,
+                  child: RichText(
+                    text: const TextSpan(
+                      text: "Don't have an account? ",
+                      style: TextStyle(color: AppColors.textGrey, fontSize: 14),
+                      children: [
+                        TextSpan(
+                          text: "Sign Up",
+                          style: TextStyle(
+                            color: AppColors.cyan,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

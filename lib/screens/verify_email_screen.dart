@@ -19,7 +19,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-check every 4 seconds if user verified their email
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       _checkVerification();
     });
@@ -32,7 +31,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     super.dispose();
   }
 
-  // Checks Firebase if email is verified yet
   Future<void> _checkVerification() async {
     try {
       await FirebaseAuth.instance.currentUser?.reload();
@@ -40,17 +38,15 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
       if (user != null && user.emailVerified) {
         _timer?.cancel();
-        // ✅ Auto-navigate to home once verified
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (e) {
-      // silently ignore reload errors
+      // silently ignore
     }
   }
 
-  // Resend verification email with 30s cooldown
   Future<void> _resendEmail() async {
     try {
       await FirebaseAuth.instance.currentUser?.sendEmailVerification();
@@ -64,7 +60,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         const SnackBar(content: Text('Verification email sent!')),
       );
 
-      // Countdown timer so user knows when they can resend again
       _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
         setState(() {
           _resendCooldown--;
@@ -94,86 +89,146 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
 
     return Scaffold(
+      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
-        title: const Text("Verify Email"),
-        automaticallyImplyLeading: false, // removes back button
+        backgroundColor: AppColors.darkBg,
+        elevation: 0,
+        title: const Text(
+          "Verify Email",
+          style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600),
+        ),
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon
-            const Icon(
-              Icons.mark_email_unread_outlined,
-              size: 90,
-              color: AppColors.teal,
-            ),
-            const SizedBox(height: 24),
-
-            // Title
-            const Text(
-              'Check Your Inbox!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.teal,
+            // Glow icon
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withOpacity(0.4),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-
-            // Email display
-            Text(
-              'A verification link was sent to:',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              email,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+              child: const Icon(
+                Icons.mark_email_unread_outlined,
+                size: 48,
+                color: Colors.white,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The app will open automatically once you verify.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
             ),
             const SizedBox(height: 32),
+
+            ShaderMask(
+              shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+              child: const Text(
+                'Check Your Inbox!',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            const Text(
+              'A verification link was sent to:',
+              style: TextStyle(fontSize: 14, color: AppColors.textGrey),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.darkCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.darkBorder),
+              ),
+              child: Text(
+                email,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.cyan,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'The app will open automatically once you verify.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.textGrey),
+            ),
+            const SizedBox(height: 40),
 
             // Resend button
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _canResend ? _resendEmail : null,
-                icon: const Icon(Icons.email_outlined),
-                label: Text(
-                  _canResend
-                      ? 'Resend Verification Email'
-                      : 'Resend in $_resendCooldown seconds...',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+              height: 52,
+              child: _canResend
+                  ? DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withOpacity(0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: _resendEmail,
+                        icon: const Icon(Icons.email_outlined),
+                        label: const Text('Resend Verification Email'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.hourglass_empty_rounded, size: 18),
+                      label: Text('Resend in $_resendCooldown seconds...'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.darkCard,
+                        foregroundColor: AppColors.textDimmed,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: AppColors.darkBorder),
+                        ),
+                      ),
+                    ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
 
-            // Back to login
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: OutlinedButton.icon(
                 onPressed: _logout,
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Back to Login'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.teal,
-                  side: const BorderSide(color: AppColors.teal),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: AppColors.textMuted,
+                  side: const BorderSide(color: AppColors.darkBorder),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ),

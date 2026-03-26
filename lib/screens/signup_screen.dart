@@ -25,7 +25,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   final List<String> genderOptions = ['Male', 'Female', 'Other'];
 
-  // DOB picker
   Future<void> pickDob() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -35,10 +34,11 @@ class _SignupScreenState extends State<SignupScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.teal,
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.purple,
               onPrimary: Colors.white,
-              onSurface: AppColors.textDark,
+              surface: AppColors.darkCard,
+              onSurface: AppColors.textWhite,
             ),
           ),
           child: child!,
@@ -55,7 +55,6 @@ class _SignupScreenState extends State<SignupScreen> {
     String password = passwordController.text.trim();
     String name = nameController.text.trim();
 
-    // Check 1: empty fields
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
@@ -63,7 +62,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // Check 2: gender selected
     if (selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select your gender")),
@@ -71,7 +69,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // Check 3: DOB selected
     if (selectedDob == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select your date of birth")),
@@ -79,7 +76,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // Check 4: strong regex
     if (!AuthService.emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Enter a valid email (e.g. john@gmail.com)")),
@@ -87,7 +83,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // Check 5: password length
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Password must be at least 6 characters")),
@@ -131,127 +126,180 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  Widget _buildLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          color: AppColors.textMuted,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Account")),
+      backgroundColor: AppColors.darkBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.darkBg,
+        foregroundColor: AppColors.textMuted,
+        elevation: 0,
+        title: const Text(
+          "Create Account",
+          style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            const Text(
-              "Create Account",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.teal,
+            // ── Header ──
+            ShaderMask(
+              shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+              child: const Text(
+                "Join Us Today",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
+            const SizedBox(height: 4),
+            const Text(
               "Fill in your details to get started",
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14, color: AppColors.textGrey),
             ),
             const SizedBox(height: 28),
 
             // Name
+            _buildLabel("Full Name"),
             CustomTextField(
               controller: nameController,
-              hintText: "Full Name",
+              hintText: "Your full name",
+              prefixIcon: Icons.person_outline,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Email
+            _buildLabel("Email Address"),
             CustomTextField(
               controller: emailController,
-              hintText: "Email Address",
+              hintText: "you@example.com",
+              prefixIcon: Icons.email_outlined,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Password
+            _buildLabel("Password"),
             CustomTextField(
               controller: passwordController,
-              hintText: "Password (min 6 characters)",
+              hintText: "Min. 6 characters",
               obscureText: true,
+              prefixIcon: Icons.lock_outline,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Gender dropdown
+            // Gender
+            _buildLabel("Gender"),
             DropdownButtonFormField<String>(
               value: selectedGender,
+              dropdownColor: AppColors.darkCard,
+              style: const TextStyle(color: AppColors.textWhite),
               decoration: InputDecoration(
                 hintText: "Select Gender",
+                hintStyle: const TextStyle(color: AppColors.textDimmed),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: AppColors.darkInput,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.beige),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.beige),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.teal, width: 2),
+                  borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
                 ),
+                prefixIcon: const Icon(Icons.wc_outlined, color: AppColors.textDimmed, size: 20),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               ),
               items: genderOptions.map((g) {
                 return DropdownMenuItem(value: g, child: Text(g));
               }).toList(),
               onChanged: (val) => setState(() => selectedGender = val),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // DOB picker
+            // DOB
+            _buildLabel("Date of Birth"),
             GestureDetector(
               onTap: pickDob,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.darkInput,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.beige),
+                  border: Border.all(color: AppColors.darkBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      selectedDob == null
-                          ? "Date of Birth"
-                          : "${selectedDob!.day}/${selectedDob!.month}/${selectedDob!.year}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: selectedDob == null ? Colors.grey[500] : AppColors.textDark,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today_outlined, color: AppColors.textDimmed, size: 20),
+                        const SizedBox(width: 12),
+                        Text(
+                          selectedDob == null
+                              ? "Select date of birth"
+                              : "${selectedDob!.day}/${selectedDob!.month}/${selectedDob!.year}",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: selectedDob == null ? AppColors.textDimmed : AppColors.textWhite,
+                          ),
+                        ),
+                      ],
                     ),
-                    const Icon(Icons.calendar_today_outlined, color: AppColors.teal, size: 20),
+                    const Icon(Icons.chevron_right, color: AppColors.textDimmed, size: 18),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
 
-            // Signup button
-            CustomButton(
-              text: "Create Account",
-              onPressed: signupUser,
-            ),
-            const SizedBox(height: 12),
+            // Button
+            CustomButton(text: "Create Account", onPressed: signupUser),
+            const SizedBox(height: 16),
 
-            // Back to login
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "Already have an account? Login",
-                  style: TextStyle(color: AppColors.teal),
+                child: RichText(
+                  text: const TextSpan(
+                    text: "Already have an account? ",
+                    style: TextStyle(color: AppColors.textGrey, fontSize: 14),
+                    children: [
+                      TextSpan(
+                        text: "Sign In",
+                        style: TextStyle(
+                          color: AppColors.cyan,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

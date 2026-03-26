@@ -46,7 +46,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Monthly Budget")),
+      backgroundColor: AppColors.darkBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.darkBg,
+        foregroundColor: AppColors.textMuted,
+        elevation: 0,
+        title: const Text(
+          "Monthly Budget",
+          style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -62,52 +71,61 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 double totalBudget = 0;
 
                 if (snapshot.hasData && snapshot.data!.exists) {
-                  final data =
-                  snapshot.data!.data() as Map<String, dynamic>;
-                  baseBudget =
-                      (data['monthlyBudget'] as num?)?.toDouble() ?? 0;
-                  rollover =
-                      (data['rolloverAmount'] as num?)?.toDouble() ?? 0;
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  baseBudget = (data['monthlyBudget'] as num?)?.toDouble() ?? 0;
+                  rollover = (data['rolloverAmount'] as num?)?.toDouble() ?? 0;
                   totalBudget = baseBudget + rollover;
                 }
 
                 return Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.teal, Color(0xFF0D9394)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.teal.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                        color: AppColors.purple.withOpacity(0.35),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "This Month's Budget",
-                        style:
-                        TextStyle(color: Colors.white70, fontSize: 14),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.account_balance_wallet_outlined,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            "This Month's Budget",
+                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 14),
                       Text(
                         "₹${totalBudget.toStringAsFixed(2)}",
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 32,
+                          fontSize: 36,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      // Base + Rollover breakdown
+                      const SizedBox(height: 18),
                       Row(
                         children: [
                           Expanded(
@@ -138,51 +156,69 @@ class _BudgetScreenState extends State<BudgetScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: AppColors.textWhite,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            const Text(
+              "Update your monthly spending limit",
+              style: TextStyle(fontSize: 13, color: AppColors.textGrey),
+            ),
+            const SizedBox(height: 14),
             CustomTextField(
               controller: budgetController,
               hintText: "Enter Monthly Budget (₹)",
+              prefixIcon: Icons.currency_rupee,
             ),
             const SizedBox(height: 16),
-            CustomButton(
-              text: "Save Budget",
-              onPressed: saveBudget,
-            ),
-            const SizedBox(height: 32),
+            CustomButton(text: "Save Budget", onPressed: saveBudget),
+            const SizedBox(height: 36),
 
             // ── Rollover History ──
-            const Text(
-              "💰 Savings Rollover History",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
+            Row(
+              children: const [
+                Icon(Icons.savings_outlined, color: AppColors.cyan, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Savings Rollover History",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textWhite,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
+
             StreamBuilder<QuerySnapshot>(
               stream: budgetService.getRolloverHistory(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.purple),
+                  );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.beige),
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.darkBorder),
                     ),
-                    child: const Text(
-                      "No rollover history yet.\nSave money this month to see it here! 🎯",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.inbox_outlined, color: AppColors.textDimmed, size: 36),
+                        SizedBox(height: 10),
+                        Text(
+                          "No rollover history yet.\nSave money this month to see it here! 🎯",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textGrey, fontSize: 14),
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -193,74 +229,67 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: history.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 10),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final record =
-                    history[index].data() as Map<String, dynamic>;
+                    final record = history[index].data() as Map<String, dynamic>;
                     final month = record['month'] ?? '';
-                    final saved =
-                        (record['savedAmount'] as num?)?.toDouble() ?? 0;
+                    final saved = (record['savedAmount'] as num?)?.toDouble() ?? 0;
                     final addedTo = record['addedToMonth'] ?? '';
 
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                        color: AppColors.darkCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.darkBorder),
                       ),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color:
-                              AppColors.teal.withOpacity(0.1),
+                              gradient: AppColors.greenGradient,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.savings_outlined,
-                              color: AppColors.teal,
+                              color: Colors.white,
+                              size: 20,
                             ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   "Saved in $month",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
-                                    color: AppColors.textDark,
+                                    color: AppColors.textWhite,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   "Added to $addedTo budget",
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[500],
+                                    color: AppColors.textGrey,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          Text(
-                            "+₹${saved.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppColors.teal,
+                          ShaderMask(
+                            shaderCallback: (bounds) => AppColors.greenGradient.createShader(bounds),
+                            child: Text(
+                              "+₹${saved.toStringAsFixed(2)}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -270,7 +299,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -278,7 +307,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 }
 
-// ── Helper widget ──
 class _BudgetInfoTile extends StatelessWidget {
   final String label;
   final String value;
@@ -290,16 +318,13 @@ class _BudgetInfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,

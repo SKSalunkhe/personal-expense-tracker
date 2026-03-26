@@ -19,17 +19,14 @@ import '../screens/calendar_screen.dart';
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
 
-
   @override
   State<ExpenseListScreen> createState() => _ExpenseListScreenState();
 }
 
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
   String selectedFilter = 'All';
-
   bool budgetWarningShown = false;
   bool budgetExceededShown = false;
-
   DateTime? lastNotificationTime;
 
   bool canShowNotification() {
@@ -37,32 +34,21 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       lastNotificationTime = DateTime.now();
       return true;
     }
-
     final difference = DateTime.now().difference(lastNotificationTime!);
-
     if (difference.inMinutes >= 1) {
       lastNotificationTime = DateTime.now();
       return true;
     }
-
     return false;
   }
 
-  double calculateRemaining(double budget, double spent) {
-    return budget - spent;
-  }
+  double calculateRemaining(double budget, double spent) => budget - spent;
 
   final TextEditingController searchController = TextEditingController();
 
   final List<String> filterCategories = [
-    'All',
-    'Food',
-    'Transport',
-    'Shopping',
-    'Bills',
-    'Entertainment',
-    'Health',
-    'Other',
+    'All', 'Food', 'Transport', 'Shopping',
+    'Bills', 'Entertainment', 'Health', 'Other',
   ];
 
   @override
@@ -81,13 +67,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   Future<void> logoutUser(BuildContext context) async {
     final AuthService authService = AuthService();
     await authService.logoutUser();
-
     if (!mounted) return;
-
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -98,34 +82,29 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     final ExportService exportService = ExportService();
 
     return Scaffold(
+      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
+        backgroundColor: AppColors.darkBg,
+        elevation: 0,
         title: const Text(
-          "Transactions...",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          "Transactions",
+          style: TextStyle(
+            color: AppColors.textWhite,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         centerTitle: false,
-        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month),
+            icon: const Icon(Icons.calendar_month, color: AppColors.textMuted),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => CalendarScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => CalendarScreen()),
               );
             },
           ),
-          /*IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BudgetScreen()),
-              );
-            },
-            icon: const Icon(Icons.account_balance_wallet),
-          ),*/
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -133,102 +112,120 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.person_outline, color: AppColors.textMuted),
           ),
           IconButton(
             onPressed: () => logoutUser(context),
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: AppColors.textMuted),
           ),
         ],
       ),
       body: Column(
-
         children: [
+          // ── Search ──
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: TextField(
               controller: searchController,
+              style: const TextStyle(color: AppColors.textWhite),
               decoration: InputDecoration(
-                hintText: "Search by title",
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
+                hintText: "Search by title...",
+                hintStyle: const TextStyle(color: AppColors.textDimmed),
+                prefixIcon: const Icon(Icons.search, color: AppColors.textDimmed, size: 20),
                 suffixIcon: searchController.text.isNotEmpty
                     ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    searchController.clear();
-                    setState(() {});
-                  },
-                )
+                        icon: const Icon(Icons.clear, color: AppColors.textDimmed, size: 18),
+                        onPressed: () {
+                          searchController.clear();
+                          setState(() {});
+                        },
+                      )
                     : null,
+                filled: true,
+                fillColor: AppColors.darkInput,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              onChanged: (value) {
-                setState(() {});
-              },
+              onChanged: (value) => setState(() {}),
             ),
           ),
+
+          // ── Category Filter ──
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: DropdownButtonFormField<String>(
               value: selectedFilter,
-              decoration: const InputDecoration(
+              dropdownColor: AppColors.darkCard,
+              style: const TextStyle(color: AppColors.textWhite),
+              decoration: InputDecoration(
                 labelText: "Filter by Category",
-                border: OutlineInputBorder(),
+                labelStyle: const TextStyle(color: AppColors.textDimmed, fontSize: 13),
+                filled: true,
+                fillColor: AppColors.darkInput,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               ),
               items: filterCategories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
+                return DropdownMenuItem(value: category, child: Text(category));
               }).toList(),
               onChanged: (value) {
-                setState(() {
-                  selectedFilter = value!;
-                });
+                setState(() => selectedFilter = value!);
               },
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
+
+          // ── Expense List ──
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: expenseService.getExpenses(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text("Error: ${snapshot.error}"),
-                  );
+                  return Center(child: Text("Error: ${snapshot.error}"));
                 }
-
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(color: AppColors.purple),
                   );
                 }
 
                 final allExpenses = snapshot.data!.docs;
 
                 double totalSpent = 0;
-
                 for (var e in allExpenses) {
                   totalSpent += (e['amount'] as num).toDouble();
                 }
 
-
                 final categoryFiltered = selectedFilter == 'All'
                     ? allExpenses
-                    : allExpenses.where((expense) {
-                  return expense['category'] == selectedFilter;
-                }).toList();
+                    : allExpenses.where((e) => e['category'] == selectedFilter).toList();
 
                 final query = searchController.text.toLowerCase().trim();
-
                 final expenses = categoryFiltered.where((expense) {
                   final title = expense['title'].toString().toLowerCase();
-                  final expenseDate = (expense['date'] as Timestamp).toDate();
-
-                  bool matchesSearch = title.contains(query);
-
-                  return matchesSearch ;
+                  return title.contains(query);
                 }).toList();
 
                 double totalAmount = 0;
@@ -238,18 +235,22 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                 for (var expense in expenses) {
                   final amount = (expense['amount'] as num).toDouble();
                   final expenseDate = (expense['date'] as Timestamp).toDate();
-
                   totalAmount += amount;
-
-                  if (expenseDate.month == now.month &&
-                      expenseDate.year == now.year) {
+                  if (expenseDate.month == now.month && expenseDate.year == now.year) {
                     monthlyAmount += amount;
                   }
                 }
 
                 if (expenses.isEmpty) {
                   return const Center(
-                    child: Text("No expenses found"),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt_long_outlined, color: AppColors.textDimmed, size: 48),
+                        SizedBox(height: 12),
+                        Text("No expenses found", style: TextStyle(color: AppColors.textGrey)),
+                      ],
+                    ),
                   );
                 }
 
@@ -258,28 +259,24 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                 return ListView(
                   padding: const EdgeInsets.only(bottom: 20),
                   children: [
+                    // ── Summary Card ──
                     StreamBuilder<DocumentSnapshot>(
                       stream: budgetService.getBudget(),
                       builder: (context, budgetSnapshot) {
-
                         if (budgetSnapshot.hasData && budgetSnapshot.data!.exists) {
                           monthlyBudget =
                               (budgetSnapshot.data!['monthlyBudget'] as num).toDouble();
                         }
 
                         double remainingBudget = monthlyBudget - monthlyAmount;
-                        final now = DateTime.now();
-
                         final totalDays = DateTime(now.year, now.month + 1, 0).day;
                         final daysPassed = now.day;
                         final daysRemaining = totalDays - daysPassed;
 
                         if (monthlyBudget > 0 && daysRemaining > 0) {
-
                           final message =
                               "You spent ₹${monthlyAmount.toStringAsFixed(0)} in $daysPassed days.\n"
                               "₹${remainingBudget.toStringAsFixed(0)} remaining for $daysRemaining days.";
-
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (canShowNotification()) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -294,14 +291,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
                         if (monthlyBudget > 0) {
                           final usedPercent = monthlyAmount / monthlyBudget;
-
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (!mounted) return;
-
                             if (usedPercent >= 1 && !budgetExceededShown) {
                               budgetExceededShown = true;
                               budgetWarningShown = true;
-
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Budget exceeded! Please control your expenses."),
@@ -310,7 +304,6 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                               );
                             } else if (usedPercent >= 0.8 && !budgetWarningShown) {
                               budgetWarningShown = true;
-
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Warning: You have used 80% of your monthly budget."),
@@ -328,98 +321,42 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
                         return Container(
                           padding: const EdgeInsets.all(20),
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF1F7A78),
-                                Color(0xFF2C9C99),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            gradient: AppColors.expenseGradient,
                             borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.purple.withOpacity(0.25)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
+                                color: AppColors.purple.withOpacity(0.2),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                "Total Expenses",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _SummaryItem(label: "Total Spent", value: "₹${totalAmount.toStringAsFixed(0)}"),
+                                  _SummaryItem(label: "This Month", value: "₹${monthlyAmount.toStringAsFixed(0)}"),
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "₹${totalAmount.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text(
-                                "This Month",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                "₹${monthlyAmount.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text(
-                                "Monthly Budget",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                "₹${monthlyBudget.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text(
-                                "Remaining Budget",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                "₹${remainingBudget.toStringAsFixed(2)}",
-                                style: TextStyle(
-                                  color: remainingBudget < 0 ? Colors.redAccent : Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              const SizedBox(height: 14),
+                              Container(height: 1, color: AppColors.darkBorder),
+                              const SizedBox(height: 14),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _SummaryItem(label: "Budget", value: "₹${monthlyBudget.toStringAsFixed(0)}"),
+                                  _SummaryItem(
+                                    label: "Remaining",
+                                    value: "₹${remainingBudget.toStringAsFixed(0)}",
+                                    valueColor: remainingBudget < 0 ? AppColors.pinkRed : AppColors.cyanLight,
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -427,53 +364,61 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                       },
                     ),
 
+                    // ── Export Button ──
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Align(
                         alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orangeAccent,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 5,
-                          ),
-                          onPressed: () async {
-                            await exportService.exportExpensesToPDF(
-                              allExpenses,
-                              monthlyBudget,
-                            );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("PDF exported successfully"),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: AppColors.roseGradient,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.pinkRed.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.download),
-                          label: const Text("Export PDF"),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              await exportService.exportExpensesToPDF(allExpenses, monthlyBudget);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("PDF exported successfully")),
+                              );
+                            },
+                            icon: const Icon(Icons.download, size: 18),
+                            label: const Text("Export PDF", style: TextStyle(fontWeight: FontWeight.w600)),
+                          ),
                         ),
                       ),
                     ),
 
+                    // ── Transactions Header ──
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
+                        children: [
+                          const Text(
                             "Recent Transactions",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.textWhite,
                             ),
                           ),
-                          Icon(Icons.history),
+                          Icon(Icons.history, color: AppColors.textGrey, size: 20),
                         ],
                       ),
                     ),
@@ -485,17 +430,15 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          color: AppColors.deepRose,
-                          child: const Icon(
-                            Icons.delete,
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.roseGradient,
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          child: const Icon(Icons.delete_outline, color: Colors.white),
                         ),
                         onDismissed: (direction) async {
                           await expenseService.deleteExpense(expense.id);
-
                           if (!mounted) return;
-
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Expense deleted")),
                           );
@@ -533,8 +476,38 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => goToAddExpense(context),
+        backgroundColor: AppColors.purple,
+        foregroundColor: Colors.white,
+        elevation: 8,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _SummaryItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _SummaryItem({required this.label, required this.value, this.valueColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor ?? Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -46,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'icon': Icons.subscriptions_outlined,
       'tip': 'Audit unused subscriptions',
       'saving': 'Save ₹500/month',
-      'color': AppColors.purpleLight,
+      'color': AppColors.cyan,
     },
     {
       'icon': Icons.shopping_bag_outlined,
@@ -58,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'icon': Icons.savings_outlined,
       'tip': 'Save 20% of income first',
       'saving': 'Build emergency fund',
-      'color': AppColors.purple,
+      'color': AppColors.purpleLight,
     },
   ];
 
@@ -144,9 +144,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
         backgroundColor: AppColors.darkBg,
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w500),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            ShaderMask(
+              shaderCallback: (bounds) => AppColors.primaryGradient.createShader(
+                Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+              ),
+              child: const Text(
+                'TrackMint',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -1.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Expense tracker',
+              style: TextStyle(
+                color: AppColors.textDimmed,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
         ),
         automaticallyImplyLeading: false,
         actions: [
@@ -176,13 +202,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1A1040), Color(0xFF2D1B69)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.purple.withOpacity(0.3)),
+                gradient: AppColors.heroGradient,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.purple.withOpacity(0.35)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,12 +221,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.purpleFaint,
+                          gradient: AppColors.primaryGradient,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
                           Icons.account_balance_wallet_outlined,
-                          color: AppColors.purpleLight,
+                          color: Colors.white,
                           size: 18,
                         ),
                       ),
@@ -211,13 +240,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Text(
                     userName.isNotEmpty ? userName : 'Welcome!',
                     style: const TextStyle(
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textWhite,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -381,26 +411,35 @@ class _QuickActionCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
             color: AppColors.darkCard,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.darkBorder),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 9),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: color,
                 ),
               ),
