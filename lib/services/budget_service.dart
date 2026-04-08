@@ -15,8 +15,6 @@ class BudgetService {
     await _firestore.collection('budgets').doc(_userId).set({
       'userId': _userId,
       'monthlyBudget': budget,
-      'rolloverAmount': 0,
-      'savings': 0,
     }, SetOptions(merge: true));
   }
 
@@ -62,9 +60,10 @@ class BudgetService {
     if (lastRolloverMonth == thisMonthKey) return null;
 
     final double baseBudget = (data['monthlyBudget'] as num).toDouble();
+    final double prevRollover = (data['rolloverAmount'] as num?)?.toDouble() ?? 0;
 
-    // Calculate leftover from last month
-    final double leftover = baseBudget - lastMonthSpent;
+    // Calculate leftover (Base + Previous Rollover - Last Month Spending)
+    final double leftover = (baseBudget + prevRollover) - lastMonthSpent;
 
     if (leftover <= 0) {
       // Nothing to rollover — just mark as done

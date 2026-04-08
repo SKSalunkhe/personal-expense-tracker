@@ -90,8 +90,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _checkRollover() async {
     try {
       final now = DateTime.now();
-      if (now.day != 1) return;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
+      final thisMonthKey = "${now.year}-${now.month.toString().padLeft(2, '0')}";
+
+      // 1. Quick check: Already rolled over this month?
+      final budgetDoc = await FirebaseFirestore.instance.collection('budgets').doc(user.uid).get();
+      if (budgetDoc.exists) {
+        final lastRolloverMonth = budgetDoc.data()?['lastRolloverMonth'] ?? '';
+        if (lastRolloverMonth == thisMonthKey) return;
+      }
+
+      // 2. Perform calculation only if needed
       final expenseService = ExpenseService();
       final expenses = await expenseService.getExpenses().first;
       final lastMonth = DateTime(now.year, now.month - 1);
